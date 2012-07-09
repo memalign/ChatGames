@@ -2,10 +2,14 @@
 #
 
 require 'ChatService.rb'
+require 'ModuleController.rb'
 
 class ChatServer
     def initialize(filename)
         @filename = filename
+
+        # Load up users, modules?
+        @modController = ModuleController.new
     end
     
     def run
@@ -15,7 +19,7 @@ class ChatServer
     end
 
     def messageReceived(handle, text)
-        @chatService.sendMessage(handle, "Got your message!")
+        @modController.messageReceived(@chatService, handle, text)
     end
 end
 
