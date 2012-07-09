@@ -20,11 +20,11 @@ class ModuleController
     end
 
     def ModuleController.loadModule(moduleName, modClass)
-        @@LOADEDMODULES[moduleName] = modClass
+        @@LOADEDMODULES[moduleName.downcase] = modClass
     end
 
     def ModuleController.setMainModuleName(mainModName)
-        @@MAINMODULENAME = mainModName
+        @@MAINMODULENAME = mainModName.downcase
     end
 
     def initialize
@@ -74,6 +74,8 @@ class ModuleController
         @@LOADEDMODULES.each { |modName, modClass|
             @modules[modName] = modClass.new
         }
+
+        @modules[@@MAINMODULENAME].setModules(@modules)
     end
 
     def messageReceived(chatServer, handle, text)
