@@ -30,10 +30,9 @@ class Fortune
     end
 
     def getFortune
-        Kernel.system("wget", "-O", "temp.html", "-T", "150", "http://www.fortunecookiemessage.com/")
+        Kernel.system("curl", "-o", "temp.html", "-m", "150", "http://www.fortunecookiemessage.com/")
         pagetext = get_file_as_string("temp.html")
-        #               <a href="cookie/7985-You-will-be-selected-for-a-promotion-because-of-your-accomplishments." style="font-size:18px; text-decoration:none;">You will be selected for a promotion because of your accomplishments.</a> </p>    <p align="center">
-        #
+        # <a href="cookie/7985-You-will-be-selected-for-a-promotion-because-of-your-accomplishments." style="font-size:18px; text-decoration:none;">You will be selected for a promotion because of your accomplishments.</a> </p>    <p align="center">
         if (/<a href="cookie[^>]+>([^<]+)<\/a>/.match(pagetext))
             return $1
         end
