@@ -3,6 +3,7 @@
 
 class User
     attr_reader :state, :handle, :currentModule
+    attr_writer :currentModule
 
     def initialize(handle)
         @handle = handle

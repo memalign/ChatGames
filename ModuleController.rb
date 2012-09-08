@@ -51,7 +51,7 @@ class ModuleController
                 end
 
                 if (!moduleName.nil?)
-                    mod = @modules[moduleName]
+                    mod = @modules[moduleName.downcase]
                     user.addState(moduleName, mod.parseState(modStr))
                 end
             end
@@ -62,8 +62,10 @@ class ModuleController
         File.open(@@USERSFILE, 'w') { |f|
             @users.each { |handle,user|
                 user.state.each { |modName, state|
-                    modStr = @modules[modName].serialize(state)
-                    f.write("<#{handle}>#{modName} #{modStr}\n")
+                    if (!state.nil?)
+                        modStr = @modules[modName.downcase].serialize(state)
+                        f.write("<#{handle}>#{modName} #{modStr}\n")
+                    end
                 }
             }
         }
@@ -92,5 +94,6 @@ class ModuleController
         end
 
         @modules[currentModule].process(chatServer, user, text)
+        saveUsers
     end
 end
