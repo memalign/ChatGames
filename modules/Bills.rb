@@ -110,6 +110,14 @@ class Bills
         @pendingBills[user.handle] = nil
         saveBillHistory
         chatServer.sendMessage(user.handle, "Bill added.")
+
+        # Alert others involved
+        cgUser = findCGUserForUser(user)
+        bill.participantPayTriples.each { |triple|
+            if (triple.user != cgUser)
+                chatServer.sendMessage(triple.user.email, "#{cgUser.name} has added a bill for \"#{bill.comment}\" where you owe #{triple.amountOwe.moneyString}")
+            end
+        }
     end
 
     def cancelBill(chatServer, user, text)
