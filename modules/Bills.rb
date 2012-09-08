@@ -90,7 +90,7 @@ class Bills
     def helpString
         string = "Commands:\n"
         @sortedCommands.each { |name|
-            string << "#{@commands[name][1]}\n"
+            string << "> #{@commands[name][1]}\n"
         }
         string
     end
@@ -147,6 +147,12 @@ class Bills
             end
             otherCGUsers << tempUsers[0]
         }
+
+        if (otherCGUsers.include?(cgUser))
+            chatServer.sendMessage(user.handle, "You can't bill yourself.")
+            return
+        end
+
         moneyString = matches[2]
         comment = "#{matches[3]}"
         amount = BigDecimal.new(moneyString)
@@ -192,6 +198,12 @@ class Bills
             return
         end
         otherCGUser = otherCGUsers[0]
+
+        if (otherCGUser == cgUser)
+            chatServer.sendMessage(user.handle, "You can't bill yourself.")
+            return
+        end
+
         amount = BigDecimal.new(moneyString)
         chatServer.sendMessage(user.handle, "Bill #{otherCGUser.name} (#{otherCGUser.email}) #{amount.moneyString} for \"#{comment}\"?")
 
