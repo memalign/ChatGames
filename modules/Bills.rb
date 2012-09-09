@@ -36,11 +36,17 @@ class Bills
             chatServer.sendMessage(user.handle, "You have left bills mode.")
         }, "#{cmd} - Leave bills mode"]
 
-        cmd = "owe"
+        cmd = "unshuffled"
         @sortedCommands << cmd
         @commands[cmd] = [Proc.new { |chatServer, user, text|
             processOweChart(chatServer, user)
-        }, "#{cmd} - See who owes you"]
+        }, "#{cmd} - See who owes you without shuffling"]
+
+        cmd = "owe"
+        @sortedCommands << cmd
+        @commands[cmd] = [Proc.new { |chatServer, user, text|
+            processShuffledOweChart(chatServer, user)
+        }, "#{cmd} - See who owes you (shuffled)"]
 
         cmd = "bill"
         @sortedCommands << cmd
@@ -223,6 +229,46 @@ class Bills
         @pendingBills[user.handle] = bill
     end
 
+    def oweString(oweChart)
+        message = ""
+        comma = ""
+        if (oweChart.count == 0)
+            message << "You are even!"
+        end
+        oweChart.each { |otherCGUser,oweAmount|
+            if (oweAmount > 0) # otherCGUser owes cgUser
+                message << "#{comma}#{otherCGUser.name} owes you #{oweAmount.moneyString}"
+            else
+                message << "#{comma}You owe #{otherCGUser.name} #{(-oweAmount).moneyString}"
+            end
+            comma = "\n"
+        }
+        return message
+    end
+
+    def processShuffledOweChart(chatServer, user)
+        cgUser = findCGUserForUser(user)
+        if (cgUser.nil?)
+            chatServer.sendMessage(user.handle, "[#{@@NAME}] Couldn't find your user :(")
+            return
+        end
+
+        groups = @billHistory.findUserGroupsContainingUser(cgUser)
+        if (groups.nil? || (groups.count != 1))
+            chatServer.sendMessage(user.handle, "[#{@@NAME}] I can't shuffle your debts - you're not in exactly one group")
+            return
+        end
+
+        shuffledOweChart = @billHistory.shuffleDebtsForGroup(groups[0], true)
+        oweChart = shuffledOweChart.forUser(cgUser)
+        if (oweChart.nil?)
+            chatServer.sendMessage(user.handle, "[#{@@NAME}] Couldn't find your owe chart :(")
+            return
+        end
+
+        chatServer.sendMessage(user.handle, oweString(oweChart))
+    end
+
     def processOweChart(chatServer, user)
         cgUser = findCGUserForUser(user)
         if (cgUser.nil?)
@@ -236,17 +282,7 @@ class Bills
             return
         end
 
-        message = ""
-        comma = ""
-        oweChart.each { |otherCGUser,oweAmount|
-            if (oweAmount > 0) # otherCGUser owes cgUser
-                message << "#{comma}#{otherCGUser.name} owes you #{oweAmount.moneyString}"
-            else
-                message << "#{comma}You owe #{otherCGUser.name} #{(-oweAmount).moneyString}"
-            end
-            comma = "\n"
-        }
-        chatServer.sendMessage(user.handle, message)
+        chatServer.sendMessage(user.handle, oweString(oweChart))
     end
 
     def findCGUserForUser(user)
