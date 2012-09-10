@@ -22,7 +22,7 @@ class Jack
     end
 
     def shortDescription
-        return "jack - deep thought"
+        return "jack - deep thought 💭"
     end
 
     def process(chatServer, user, text)

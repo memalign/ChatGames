@@ -16,7 +16,7 @@ class Ping
     end
 
     def shortDescription
-        return "ping [string] - ask for pong"
+        return "ping [string] - pong!"
     end
 
     def process(chatServer, user, text)

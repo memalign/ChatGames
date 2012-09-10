@@ -22,10 +22,10 @@ class Main
 
     def helpString
         string = "Commands:\n"
-        string << "help (?) - this text\n"
+        string << "👉help (?) - this text\n"
         @sortedModuleNames.each { |name|
             if (name != @@NAME.downcase)
-                string << "#{@modules[name].shortDescription}\n"
+                string << "👉#{@modules[name].shortDescription}\n"
             end
         }
         string
@@ -57,7 +57,7 @@ class Main
             return
         end
 
-        chatServer.sendMessage(user.handle, "Sorry, I don't recognize that command")
+        chatServer.sendMessage(user.handle, "😰 Sorry, I don't recognize that command")
     end
 end
 

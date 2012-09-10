@@ -48,6 +48,12 @@ class Bills
             processShuffledOweChart(chatServer, user)
         }, "#{cmd} - See who owes you (shuffled)"]
 
+        cmd = "list"
+        @sortedCommands << cmd
+        @commands[cmd] = [Proc.new { |chatServer, user, text|
+            processListBills(chatServer, user)
+        }, "#{cmd} - List your bills"]
+
         cmd = "bill"
         @sortedCommands << cmd
         @commands[cmd] = [Proc.new { |chatServer, user, text|
@@ -60,7 +66,19 @@ class Bills
             confirmBill(chatServer, user, text)
         }, ""]
 
+        cmd = "y"
+        # @sortedCommands << cmd # This command is silent
+        @commands[cmd] = [Proc.new { |chatServer, user, text|
+            confirmBill(chatServer, user, text)
+        }, ""]
+
         cmd = "no"
+        # @sortedCommands << cmd # This command is silent
+        @commands[cmd] = [Proc.new { |chatServer, user, text|
+            cancelBill(chatServer, user, text)
+        }, ""]
+
+        cmd = "n"
         # @sortedCommands << cmd # This command is silent
         @commands[cmd] = [Proc.new { |chatServer, user, text|
             cancelBill(chatServer, user, text)
@@ -72,9 +90,7 @@ class Bills
             splitBill(chatServer, user, text)
         }, "#{cmd} user1[, user2] amount comment - ex: \"#{cmd} Henry, Walter $33.00 dinner for 3\""]
 
-
         @pendingBills = Hash.new
-
     end
 
     def loadBillHistory
@@ -96,19 +112,19 @@ class Bills
     def helpString
         string = "Commands:\n"
         @sortedCommands.each { |name|
-            string << "> #{@commands[name][1]}\n"
+            string << "👉#{@commands[name][1]}\n"
         }
         string
     end
 
     def shortDescription
-        "bills - manage cashgraph"
+        "bills - cashgraph💰"
     end
 
     def confirmBill(chatServer, user, text)
         bill = @pendingBills[user.handle]
         if (bill.nil?)
-            chatServer.sendMessage(user.handle, "[#{@@NAME}] Sorry, I don't understand that.")
+            chatServer.sendMessage(user.handle, "[#{@@NAME}] 😰 Sorry, I don't understand that.")
             return
         end
 
@@ -121,7 +137,7 @@ class Bills
         cgUser = findCGUserForUser(user)
         bill.participantPayTriples.each { |triple|
             if (triple.user != cgUser)
-                chatServer.sendMessage(triple.user.email, "#{cgUser.name} has added a bill for \"#{bill.comment}\" where you owe #{triple.amountOwe.moneyString}")
+                chatServer.sendMessage(triple.user.email, "💸 #{cgUser.name} has added a bill for \"#{bill.comment}\" where you owe #{triple.amountOwe.moneyString}")
             end
         }
     end
@@ -129,7 +145,7 @@ class Bills
     def cancelBill(chatServer, user, text)
         bill = @pendingBills[user.handle]
         if (bill.nil?)
-            chatServer.sendMessage(user.handle, "[#{@@NAME}] Sorry, I don't understand that.")
+            chatServer.sendMessage(user.handle, "[#{@@NAME}] 😰 Sorry, I don't understand that.")
             return
         end
 
@@ -147,7 +163,7 @@ class Bills
         # Parse the text
         matches = /^split ([^\$\d]+?) \$?(\d+(?:\.\d{2})?)\s*?(?: (.+))?$/i.match(text)
         if (matches.nil?)
-            chatServer.sendMessage(user.handle, "[#{@@NAME}] Sorry, I don't understand that.")
+            chatServer.sendMessage(user.handle, "[#{@@NAME}] 😰 Sorry, I don't understand that.")
             return
         end
 
@@ -197,7 +213,7 @@ class Bills
         # Parse the text
         matches = /^bill (\S+) \$?(\d+(?:\.\d{2})?)\s*?(?: (.+))?$/i.match(text)
         if (matches.nil?)
-            chatServer.sendMessage(user.handle, "[#{@@NAME}] Sorry, I don't understand that.")
+            chatServer.sendMessage(user.handle, "[#{@@NAME}] 😰 Sorry, I don't understand that.")
             return
         end
 
@@ -285,6 +301,30 @@ class Bills
         chatServer.sendMessage(user.handle, oweString(oweChart))
     end
 
+    def processListBills(chatServer, user)
+        cgUser = findCGUserForUser(user)
+        if (cgUser.nil?)
+            chatServer.sendMessage(user.handle, "[#{@@NAME}] Couldn't find your user :(")
+        end
+
+        bills = @billHistory.findBillsForUser(cgUser)
+        if (bills.nil? || (bills.count == 0))
+            chatServer.sendMessage(user.handle, "You have no prior bills.")
+        end
+
+        bills = bills.sort { |a,b|
+            a.date <=> b.date
+        }
+
+        message = "Here are your bills:"
+        bills.each { |bill|
+            tempOweChart = CGOweChart.new
+            tempOweChart.addBill(bill)
+            message << "\n#{bill.date.strftime("%m/%d/%y")} \"#{bill.comment}\"\n#{oweString(tempOweChart.forUser(cgUser))}"
+        }
+        chatServer.sendMessage(user.handle, message)
+    end
+
     def findCGUserForUser(user)
         address = user.handle.split(":", 2)[1]
         users = @billHistory.findUsersWithPrefixOrEmail(nil, address)
@@ -307,7 +347,7 @@ class Bills
                 end
             end
 
-            chatServer.sendMessage(user.handle, "[#{@@NAME}] I don't recognize that command, try \"help\"")
+            chatServer.sendMessage(user.handle, "[#{@@NAME}] 😰 I don't recognize that command, try \"help\"")
             return
         end
 
@@ -319,13 +359,13 @@ class Bills
         address = user.handle.split(":", 2)[1]
         users = @billHistory.findUsersWithPrefixOrEmail(nil, address)
         if (users.nil? || (users.count == 0))
-            chatServer.sendMessage(user.handle, "[#{@@NAME}] You don't have access to this service :(")
+            chatServer.sendMessage(user.handle, "[#{@@NAME}] You don't have access to this service 😭")
             return
         end
 
         groups = @billHistory.findUserGroupsContainingUser(users[0])
         if (groups.nil? || (groups.count == 0))
-            chatServer.sendMessage(user.handle, "[#{@@NAME}] You don't have access to this service :(")
+            chatServer.sendMessage(user.handle, "[#{@@NAME}] You don't have access to this service 😭")
             return
         end
 
