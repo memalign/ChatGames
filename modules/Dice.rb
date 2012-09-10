@@ -31,8 +31,9 @@ class Dice
                 amtDice = inputAmtDice
             end
 
-            if ((numSides >= 0) && (numSides <= 999))
-                numSides = matches[2].to_i
+            inputNumSides = matches[2].to_i
+            if ((inputNumSides >= 1) && (inputNumSides <= 999))
+                numSides = inputNumSides
             end
         end
 
