@@ -36,11 +36,20 @@ class Fortune
         if (/<a href="cookie[^>]+>([^<]+)<\/a>/.match(pagetext))
             return $1
         end
-        return "You are very lucky!"
+        return nil
     end
 
     def process(chatServer, user, text)
-        str = getFortune
+        str = "You are very lucky!"
+
+        3.times { |i|
+            temp = getFortune
+            if (!temp.nil?)
+                str = temp
+                break
+            end
+        }
+
         if (!str.nil?)
             chatServer.sendMessage(user.handle, str)
         end
