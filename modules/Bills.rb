@@ -94,7 +94,11 @@ class Bills
     end
 
     def loadBillHistory
-        @billHistory = CGHistory.load_from_file(@@BILL_DATABASE_FILE)
+        begin
+            @billHistory = CGHistory.load_from_file(@@BILL_DATABASE_FILE)
+        rescue
+            @billHistory = CGHistory.new
+        end
     end
 
     def saveBillHistory
