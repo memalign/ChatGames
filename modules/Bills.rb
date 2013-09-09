@@ -274,19 +274,25 @@ class Bills
         end
 
         groups = @billHistory.findUserGroupsContainingUser(cgUser)
-        if (groups.nil? || (groups.count != 1))
-            chatServer.sendMessage(user.handle, "[#{@@NAME}] I can't shuffle your debts - you're not in exactly one group")
+        if (groups.nil? || (groups.count < 1))
+            chatServer.sendMessage(user.handle, "[#{@@NAME}] I can't shuffle your debts - you're not in at least one group")
             return
         end
 
-        shuffledOweChart = @billHistory.shuffleDebtsForGroup(groups[0], true)
-        oweChart = shuffledOweChart.forUser(cgUser)
-        if (oweChart.nil?)
+        # The output here will only make sense if the intersection of these groups contains only the current user
+        sentInfo = false
+        groups.each { |group|
+            shuffledOweChart = @billHistory.shuffleDebtsForGroup(group, true)
+            oweChart = shuffledOweChart.nil? ? nil : shuffledOweChart.forUser(cgUser)
+            if (!oweChart.nil?)
+                chatServer.sendMessage(user.handle, oweString(oweChart))
+                sentInfo = true
+            end
+        }
+
+        if (!sentInfo)
             chatServer.sendMessage(user.handle, "[#{@@NAME}] Couldn't find your owe chart :(")
-            return
         end
-
-        chatServer.sendMessage(user.handle, oweString(oweChart))
     end
 
     def processOweChart(chatServer, user)
